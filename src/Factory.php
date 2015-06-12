@@ -2,51 +2,48 @@
 
 namespace AbuseIO\Parsers;
 
-class Factory extends Parser
+class Factory
 {
-
-//    public function __construct() 
-//    {
-//    }
 
     /**
      * @param string $email
      * @return Parser
      */
-    public static function mapFrom($email) 
+    public static function object($parsedMail, $arfMail)
     {
 
-        $parsers = array("Shadowserver", "google");
+        // Todo - Build a array with all locally installed parsers
+        $parsers = array("Shadowserver");
 
-        foreach ($parsers as $parser) {
-            $parser = 'AbuseIO\Parsers\\' . $parser;
-
-            $config = call_user_func( array($parser, "getConfig"));
-            $regexs = $config['notifier']['sender_map'];
+        foreach ($parsers as $p) {
 
             $found = false;
-            foreach ($regexs as $regex) {
-                if (preg_match($regex, $email)) $found = true;
+
+            $p = 'AbuseIO\Parsers\\' . $p;
+
+            $parser = new $p($parsedMail, $arfMail);
+            $config = $parser->getConfig();
+
+            if ($config['parser']['enabled'] !== true) continue;
+
+            foreach ($config['parser']['sender_map'] as $regex) {
+                if (preg_match($regex, $parsedMail->getHeader('from'))) $found = true;
+            }
+
+            if (!$found) {
+                foreach ($config['parser']['body_map'] as $regex) {
+                    if (preg_match($regex, $parsedMail->getMessageBody())) $found = true;
+                }
             }
 
             if (!$found) continue;
 
-            //$parser = new $parser;
+            $parser = new $p($parsedMail, $arfMail, $config);
             return $parser;
         }
 
         return false;
     }
 
-    /**
-     * @param string $body
-     * @return Parser
-     */
-    public static function mapBody($body) 
-    {
-
-        return false;
-
-    }
 }
 

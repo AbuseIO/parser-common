@@ -2,17 +2,29 @@
 
 namespace AbuseIO\Parsers;
 
-abstract class Parser {
+use \Illuminate\Config\Repository as Config;
 
-    protected $config;
-    public $parsedMail;
-    public $arfMail;
+class Parser
+{
 
-    public function __construct($config, $parsedMail, $arfMail) {
+    public $config;
+    public $configFile;
 
-        $this->config = $config;
-        $this->parsedMail = $parsedMail;
-        $this->arfMail = $arfMail;
+    public function __construct()
+    {
+
+        //
+
+    }
+
+    public function getConfig()
+    {
+
+        $config = new Config;
+        $config->set(include($this->configFile));
+
+        return $config->all();
+
     }
 
 }
