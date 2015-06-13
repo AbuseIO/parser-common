@@ -27,5 +27,29 @@ class Parser
 
     }
 
+    protected function exception($message)
+    {
+
+        return
+            [
+                'errorStatus'   => true,
+                'errorMessage'  => $message,
+                'data'          => '',
+            ];
+
+    }
+
+    protected function success($data)
+    {
+
+        return
+            [
+                'errorStatus'   => false,
+                'errorMessage'  => 'Data sucessfully parsed',
+                'data'          => $data,
+            ];
+
+    }
+
 }
 
