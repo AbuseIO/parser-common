@@ -27,7 +27,7 @@ class Parser
 
     }
 
-    protected function exception($message)
+    protected function failed($message)
     {
 
         return
