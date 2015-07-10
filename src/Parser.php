@@ -21,6 +21,7 @@ class Parser
     {
 
         $config = new Config;
+
         $config->set(include($this->configFile));
 
         return $config->all();
@@ -50,6 +51,4 @@ class Parser
             ];
 
     }
-
 }
-

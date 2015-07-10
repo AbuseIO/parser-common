@@ -24,19 +24,27 @@ class Factory
             $parser = new $p($parsedMail, $arfMail);
             $config = $parser->getConfig();
 
-            if ($config['parser']['enabled'] !== true) continue;
+            if ($config['parser']['enabled'] !== true) {
+                continue;
+            };
 
             foreach ($config['parser']['sender_map'] as $regex) {
-                if (preg_match($regex, $parsedMail->getHeader('from'))) $found = true;
+                if (preg_match($regex, $parsedMail->getHeader('from'))) {
+                    $found = true;
+                }
             }
 
             if (!$found) {
                 foreach ($config['parser']['body_map'] as $regex) {
-                    if (preg_match($regex, $parsedMail->getMessageBody())) $found = true;
+                    if (preg_match($regex, $parsedMail->getMessageBody())) {
+                        $found = true;
+                    }
                 }
             }
 
-            if (!$found) continue;
+            if (!$found) {
+                continue;
+            }
 
             $parser = new $p($parsedMail, $arfMail, $config);
             return $parser;
@@ -44,6 +52,4 @@ class Factory
 
         return false;
     }
-
 }
-
