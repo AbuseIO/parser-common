@@ -13,7 +13,10 @@ class Factory
     {
 
         // Todo - Build a array with all locally installed parsers
-        $parsers = array("Shadowserver");
+        $parsers = [
+            'Shadowserver',
+            'Google',
+        ];
 
         foreach ($parsers as $p) {
 
