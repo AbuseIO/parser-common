@@ -21,6 +21,7 @@ class Factory
     {
         // Create array with available parsers, skip parsers-common
         $installedParsers = ClassMapGenerator::createMap(base_path().'/vendor/abuseio');
+        $parsers = [ ];
         foreach ($installedParsers as $key => $val) {
             $key = class_basename($key);
             if (!in_array($key, ['Parser', 'Factory'], true)) {
