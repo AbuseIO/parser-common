@@ -21,7 +21,13 @@ class Factory
     public static function getParsers()
     {
         $parserClassList = ClassMapGenerator::createMap(base_path().'/vendor/abuseio');
-        $parserList = array_map('class_basename', array_keys($parserClassList));
+        $parserClassListFiltered = array_where(array_keys($parserClassList), function ($key, $value) {
+            // Get all parsers, ignore all other packages.
+            if (strpos($value, 'AbuseIO\Parsers\\') !== false) {
+                return $value;
+            }
+        });
+        $parserList = array_map('class_basename', $parserClassListFiltered);
         foreach ($parserList as $parser) {
             if (!in_array($parser, ['Factory', 'Parser'])) {
                 $parsers[] = $parser;
