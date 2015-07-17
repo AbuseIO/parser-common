@@ -2,14 +2,8 @@
 
 namespace AbuseIO\Parsers;
 
-use \Illuminate\Config\Repository as Config;
-
 class Parser
 {
-
-    public $config;
-    public $configFile;
-
     /**
      * Create a new Parser instance
      */
@@ -19,20 +13,9 @@ class Parser
     }
 
     /**
-     * Load parsers' configuration file
-     * @return array
-     */
-    public function getConfig()
-    {
-        $this->config = new Config;
-        $this->config->set(include($this->configFile));
-        return $this->config->all();
-    }
-
-    /**
      * Return failed
-     * @param  string $message
-     * @return array
+     * @param  String $message
+     * @return Array
      */
     protected function failed($message)
     {
@@ -45,8 +28,8 @@ class Parser
 
     /**
      * Return success
-     * @param  string $message
-     * @return array
+     * @param  String $message
+     * @return Array
      */
     protected function success($data)
     {
