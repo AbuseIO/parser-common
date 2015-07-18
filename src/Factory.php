@@ -54,16 +54,16 @@ class Factory
             $parserClass = 'AbuseIO\\Parsers\\' . $parserName;
 
             // Parser is enabled, see if we can match it's sender_map or body_map
-            if (config("{$parserName}.parser.enabled") === true) {
+            if (config("parsers.{$parserName}.parser.enabled") === true) {
                 // Check the sender address
-                foreach (config("{$parserName}.parser.sender_map") as $regex) {
+                foreach (config("parsers.{$parserName}.parser.sender_map") as $regex) {
                     if (preg_match($regex, $parsedMail->getHeader('from'))) {
                         return new $parserClass($parsedMail, $arfMail);
                     }
                 }
 
                 // If no valid sender is found, check the body
-                foreach (config("{$parserName}.parser.body_map") as $regex) {
+                foreach (config("parsers.{$parserName}.parser.body_map") as $regex) {
                     if (preg_match($regex, $parsedMail->getMessageBody())) {
                         return new $parserClass($parsedMail, $arfMail);
                     }
