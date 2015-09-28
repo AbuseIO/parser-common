@@ -2,8 +2,35 @@
 
 namespace AbuseIO\Parsers;
 
+use Illuminate\Filesystem\Filesystem;
+use Uuid;
+
 class Parser
 {
+    /**
+     * Configuration Basename (parser name)
+     * @var String
+     */
+    public $configBase;
+
+    /**
+     * Filesystem object
+     * @var Object
+     */
+    public $fs;
+
+    /**
+     * Temporary working dir
+     * @var String
+     */
+    public $tempPath;
+
+    /**
+     * Contains the name of the missing field that is required
+     * @var String
+     */
+    public $requiredField;
+
     /**
      * Create a new Parser instance
      */
@@ -19,6 +46,8 @@ class Parser
      */
     protected function failed($message)
     {
+        $this->cleanup();
+
         return [
             'errorStatus'   => true,
             'errorMessage'  => $message,
@@ -33,6 +62,8 @@ class Parser
      */
     protected function success($data)
     {
+        $this->cleanup();
+
         return [
             'errorStatus'   => false,
             'errorMessage'  => 'Data sucessfully parsed',
@@ -41,45 +72,71 @@ class Parser
     }
 
     /**
-     * Check if the feed specified is known in the parser config.
-     * @param  string  $name Current feed name
-     * @return boolean      Return true of false
+     * Cleanup anything a parser might have left (basically, remove the working dir)
+     * @return Boolean              Returns true or false
      */
-    protected function isKnownFeed($configBase, $feedName)
+    protected function cleanup()
     {
-        if (empty(config("{$configBase}.feeds.{$feedName}"))) {
-            return $this->failed(
-                "Detected feed '{$feedName}' is unknown."
-            );
+        // if $this->fs is an object, the Filesystem has been used, clean it up.
+        if (is_object($this->fs)) {
+            if ($this->fs->isDirectory($this->tempPath)) {
+                $this->fs->deleteDirectory($this->tempPath, false);
+            }
+        }
+    }
+
+    /**
+     * Setup a working directory for the parser
+     * @return Boolean              Returns true or call $this->failed()
+     */
+    protected function createWorkingDir()
+    {
+        $uuid = Uuid::generate(4);
+        $this->tempPath = "/tmp/{$uuid}/";
+        $this->fs = new Filesystem;
+
+        if (!$this->fs->makeDirectory($this->tempPath)) {
+            return $this->failed("Unable to create directory {$this->tempPath}");
         }
         return true;
     }
 
     /**
-     * Check and see if a feed is enabled.
-     * @param  string $name Current feed name
-     * @return boolean      Return true of false
+     * Check if the feed specified is known in the parser config.
+     * @param  String   $configBase Configuration Base current parser
+     * @param  String   $feedName   Current feed name
+     * @return Boolean              Returns true or false
      */
-    protected function isEnabledFeed($configBase, $feedName)
+    protected function isKnownFeed($feedName)
     {
-        return (config("{$configBase}.feeds.{$feedName}.enabled") === true) ? true : false;
+        return (empty(config("{$this->configBase}.feeds.{$feedName}"))) ? false : true;
+    }
+
+    /**
+     * Check and see if a feed is enabled.
+     * @param  String   $feedName   Current feed name
+     * @return Boolean              Returns true or false
+     */
+    protected function isEnabledFeed($feedName)
+    {
+        return (config("{$this->configBase}.feeds.{$feedName}.enabled") === true) ? true : false;
     }
 
     /**
      * Check if all required fields are in the report.
-     * @param  array  $report Report data
-     * @param  string $name   Current feed name
-     * @return boolean        Returns true or fails the parsing
+     * @param  String   $configBase Configuration Base current parser
+     * @param  String   $feedName   Current feed name
+     * @param  Array    $report     Report data
+     * @return Boolean              Returns true or false
      */
-    protected function hasRequiredFields($configBase, $feedName, $report)
+    protected function hasRequiredFields($feedName, $report)
     {
-        $columns = array_filter(config("{$configBase}.feeds.{$feedName}.fields"));
+        $columns = array_filter(config("{$this->configBase}.feeds.{$feedName}.fields"));
         if (count($columns) > 0) {
             foreach ($columns as $column) {
                 if (!isset($report[$column])) {
-                    return $this->failed(
-                        "Required field ${column} is missing in the report or config is incorrect."
-                    );
+                    $this->requiredField = $column;
+                    return false;
                 }
             }
         }
