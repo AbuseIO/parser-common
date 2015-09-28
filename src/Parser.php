@@ -138,15 +138,18 @@ class Parser
      */
     protected function hasRequiredFields($report)
     {
-        $columns = array_filter(config("{$this->configBase}.feeds.{$this->feedName}.fields"));
-        if (count($columns) > 0) {
-            foreach ($columns as $column) {
-                if (!isset($report[$column])) {
-                    $this->requiredField = $column;
-                    return false;
+        if (is_array(config("{$this->configBase}.feeds.{$this->feedName}.fields"))) {
+            $columns = array_filter(config("{$this->configBase}.feeds.{$this->feedName}.fields"));
+            if (count($columns) > 0) {
+                foreach ($columns as $column) {
+                    if (!isset($report[$column])) {
+                        $this->requiredField = $column;
+                        return false;
+                    }
                 }
             }
         }
+        
         return true;
     }
 
@@ -157,12 +160,12 @@ class Parser
      */
     protected function applyFilters($report)
     {
-        $filter_columns = array_filter(
-            config("{$this->configBase}.feeds.{$this->feedName}.filters")
-        );
-        foreach ($filter_columns as $column) {
-            if (!empty($report[$column])) {
-                unset($report[$column]);
+        if (is_array("{$this->configBase}.feeds.{$this->feedName}.filters")) {
+            $filter_columns = array_filter(config("{$this->configBase}.feeds.{$this->feedName}.filters"));
+            foreach ($filter_columns as $column) {
+                if (!empty($report[$column])) {
+                    unset($report[$column]);
+                }
             }
         }
 
