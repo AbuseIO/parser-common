@@ -32,6 +32,12 @@ class Parser
     public $requiredField;
 
     /**
+     * Contains the name of the currently used feed within the parser
+     * @var String
+     */
+    public $feedName;
+
+    /**
      * Create a new Parser instance
      */
     public function __construct()
@@ -92,7 +98,7 @@ class Parser
     protected function createWorkingDir()
     {
         $uuid = Uuid::generate(4);
-        $this->tempPath = "/tmp/{$uuid}/";
+        $this->tempPath = "/tmp/abuseio-{$uuid}/";
         $this->fs = new Filesystem;
 
         if (!$this->fs->makeDirectory($this->tempPath)) {
@@ -107,19 +113,20 @@ class Parser
      * @param  String   $feedName   Current feed name
      * @return Boolean              Returns true or false
      */
-    protected function isKnownFeed($feedName)
+    protected function isKnownFeed()
     {
-        return (empty(config("{$this->configBase}.feeds.{$feedName}"))) ? false : true;
+        return (empty(config("{$this->configBase}.feeds.{$this->feedName}"))) ? false : true;
     }
 
     /**
      * Check and see if a feed is enabled.
+     * @param  String   $configBase Configuration Base current parser
      * @param  String   $feedName   Current feed name
      * @return Boolean              Returns true or false
      */
-    protected function isEnabledFeed($feedName)
+    protected function isEnabledFeed()
     {
-        return (config("{$this->configBase}.feeds.{$feedName}.enabled") === true) ? true : false;
+        return (config("{$this->configBase}.feeds.{$this->feedName}.enabled") === true) ? true : false;
     }
 
     /**
@@ -129,9 +136,9 @@ class Parser
      * @param  Array    $report     Report data
      * @return Boolean              Returns true or false
      */
-    protected function hasRequiredFields($feedName, $report)
+    protected function hasRequiredFields($report)
     {
-        $columns = array_filter(config("{$this->configBase}.feeds.{$feedName}.fields"));
+        $columns = array_filter(config("{$this->configBase}.feeds.{$this->feedName}.fields"));
         if (count($columns) > 0) {
             foreach ($columns as $column) {
                 if (!isset($report[$column])) {
@@ -141,5 +148,31 @@ class Parser
             }
         }
         return true;
+    }
+
+    /**
+     * Filter the unwanted and empty fields from the report.
+     * @param   Array   $report     The report that needs filtering base on config elements
+     * @return Array
+     */
+    protected function applyFilters($report)
+    {
+        $filter_columns = array_filter(
+            config("{$this->configBase}.feeds.{$this->feedName}.filters")
+        );
+        foreach ($filter_columns as $column) {
+            if (!empty($report[$column])) {
+                unset($report[$column]);
+            }
+        }
+
+        // No sense in adding empty fields, so we remove them
+        foreach ($report as $field => $value) {
+            if ($value == "") {
+                unset($report[$field]);
+            }
+        }
+
+        return $report;
     }
 }
