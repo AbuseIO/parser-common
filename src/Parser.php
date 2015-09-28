@@ -149,7 +149,7 @@ class Parser
                 }
             }
         }
-        
+
         return true;
     }
 
