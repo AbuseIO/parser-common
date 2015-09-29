@@ -87,8 +87,8 @@ class Parser
 
         return [
             'errorStatus'   => false,
-            'warningCount'  => $this->warningCount,
             'errorMessage'  => 'Data sucessfully parsed',
+            'warningCount'  => $this->warningCount,
             'data'          => $data,
         ];
     }
