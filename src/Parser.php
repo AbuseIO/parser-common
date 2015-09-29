@@ -4,6 +4,7 @@ namespace AbuseIO\Parsers;
 
 use Illuminate\Filesystem\Filesystem;
 use Uuid;
+use Log;
 
 class Parser
 {
@@ -38,6 +39,12 @@ class Parser
     public $feedName;
 
     /**
+     * Contains the name of the currently used feed within the parser
+     * @var Integer
+     */
+    public $warningCount;
+
+    /**
      * Create a new Parser instance
      */
     public function __construct()
@@ -57,6 +64,7 @@ class Parser
         return [
             'errorStatus'   => true,
             'errorMessage'  => $message,
+            'warningCount'  => $this->warningCount,
             'data'          => '',
         ];
     }
@@ -70,8 +78,16 @@ class Parser
     {
         $this->cleanup();
 
+        if (empty($data)) {
+            Log::warning(
+                'The parser ' . config("{$this->configBase}.parser.name") . 'did not return any events which' .
+                ' should be investigated for parser and/or configuration errors'
+            );
+        }
+
         return [
             'errorStatus'   => false,
+            'warningCount'  => $this->warningCount,
             'errorMessage'  => 'Data sucessfully parsed',
             'data'          => $data,
         ];
@@ -115,7 +131,17 @@ class Parser
      */
     protected function isKnownFeed()
     {
-        return (empty(config("{$this->configBase}.feeds.{$this->feedName}"))) ? false : true;
+        if (empty(config("{$this->configBase}.feeds.{$this->feedName}"))) {
+            $this->warningCount++;
+            Log::warning(
+                "The feed referred as '{$this->feedName}' is not configured in the parser " .
+                config("{$this->configBase}.parser.name") .
+                ' therefore skipping processing of this e-mail'
+            );
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -126,7 +152,15 @@ class Parser
      */
     protected function isEnabledFeed()
     {
-        return (config("{$this->configBase}.feeds.{$this->feedName}.enabled") === true) ? true : false;
+        if (config("{$this->configBase}.feeds.{$this->feedName}.enabled") !== true) {
+            Log::warning(
+                "The feed '{$this->feedName}' is disabled in the configuration of parser " .
+                config("{$this->configBase}.parser.name") .
+                ' therefore skipping processing of this e-mail'
+            );
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -144,6 +178,7 @@ class Parser
                 foreach ($columns as $column) {
                     if (!isset($report[$column])) {
                         $this->requiredField = $column;
+                        $this->warningCount++;
                         return false;
                     }
                 }
@@ -155,10 +190,11 @@ class Parser
 
     /**
      * Filter the unwanted and empty fields from the report.
-     * @param   Array   $report     The report that needs filtering base on config elements
+     * @param   Array   $report      The report that needs filtering base on config elements
+     * @param   Boolean $removeEmpty Option to remove empty fields from report, default is true
      * @return Array
      */
-    protected function applyFilters($report)
+    protected function applyFilters($report, $removeEmpty = true)
     {
         if (is_array("{$this->configBase}.feeds.{$this->feedName}.filters")) {
             $filter_columns = array_filter(config("{$this->configBase}.feeds.{$this->feedName}.filters"));
@@ -170,9 +206,11 @@ class Parser
         }
 
         // No sense in adding empty fields, so we remove them
-        foreach ($report as $field => $value) {
-            if ($value == "") {
-                unset($report[$field]);
+        if ($removeEmpty) {
+            foreach ($report as $field => $value) {
+                if ($value == "") {
+                    unset($report[$field]);
+                }
             }
         }
 
