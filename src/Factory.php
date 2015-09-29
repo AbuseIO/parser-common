@@ -3,6 +3,7 @@
 namespace AbuseIO\Parsers;
 
 use Symfony\Component\ClassLoader\ClassMapGenerator;
+use Illuminate\Support\Facades\Log;
 
 class Factory
 {
@@ -68,6 +69,10 @@ class Factory
                         return new $parserClass($parsedMail, $arfMail);
                     }
                 }
+            } else {
+                Log::info(
+                    "The parser {$parserName} has been disabled and will not be used for this message."
+                );
             }
         }
 
