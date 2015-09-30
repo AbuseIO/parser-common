@@ -39,7 +39,7 @@ class Parser
     public $feedName;
 
     /**
-     * Contains the name of the currently used feed within the parser
+     * Warning counter
      * @var Integer
      */
     public $warningCount;
@@ -80,7 +80,7 @@ class Parser
 
         if (empty($data)) {
             Log::warning(
-                'The parser ' . config("{$this->configBase}.parser.name") . 'did not return any events which' .
+                'The parser ' . config("{$this->configBase}.parser.name") . ' did not return any events which' .
                 ' should be investigated for parser and/or configuration errors'
             );
         }
@@ -136,7 +136,7 @@ class Parser
             Log::warning(
                 "The feed referred as '{$this->feedName}' is not configured in the parser " .
                 config("{$this->configBase}.parser.name") .
-                ' therefore skipping processing of this e-mail'
+                '. Therefore skipping processing of this e-mail'
             );
             return false;
         } else {
@@ -156,7 +156,7 @@ class Parser
             Log::warning(
                 "The feed '{$this->feedName}' is disabled in the configuration of parser " .
                 config("{$this->configBase}.parser.name") .
-                ' therefore skipping processing of this e-mail'
+                '. Therefore skipping processing of this e-mail'
             );
         } else {
             return true;
