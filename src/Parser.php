@@ -39,10 +39,16 @@ class Parser
     public $feedName;
 
     /**
+     * Contains an array of found events that need to be handled
+     * @var Array
+     */
+    public $events = [ ];
+
+    /**
      * Warning counter
      * @var Integer
      */
-    public $warningCount;
+    public $warningCount = 0;
 
     /**
      * Create a new Parser instance
@@ -74,14 +80,14 @@ class Parser
      * @param  String $message
      * @return Array
      */
-    protected function success($data)
+    protected function success()
     {
         $this->cleanup();
 
         if (empty($data)) {
             Log::warning(
-                'The parser ' . config("{$this->configBase}.parser.name") . ' did not return any events which' .
-                ' should be investigated for parser and/or configuration errors'
+                'The parser ' . config("{$this->configBase}.parser.name") . ' did not return any events which ' .
+                'should be investigated for parser and/or configuration errors'
             );
         }
 
@@ -89,7 +95,7 @@ class Parser
             'errorStatus'   => false,
             'errorMessage'  => 'Data sucessfully parsed',
             'warningCount'  => $this->warningCount,
-            'data'          => $data,
+            'data'          => $this->events,
         ];
     }
 
@@ -136,7 +142,7 @@ class Parser
             Log::warning(
                 "The feed referred as '{$this->feedName}' is not configured in the parser " .
                 config("{$this->configBase}.parser.name") .
-                '. Therefore skipping processing of this e-mail'
+                ' therefore skipping processing of this e-mail'
             );
             return false;
         } else {
@@ -156,11 +162,10 @@ class Parser
             Log::warning(
                 "The feed '{$this->feedName}' is disabled in the configuration of parser " .
                 config("{$this->configBase}.parser.name") .
-                '. Therefore skipping processing of this e-mail'
+                ' therefore skipping processing of this e-mail'
             );
-        } else {
-            return true;
         }
+        return true;
     }
 
     /**
