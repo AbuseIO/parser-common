@@ -50,12 +50,17 @@ class Parser
      */
     public $warningCount = 0;
 
+    public $parsedEmail;
+    public $arfMail;
+
     /**
      * Create a new Parser instance
      */
-    public function __construct()
+    public function __construct($parsedMail, $arfMail)
     {
         //
+        $this->parsedMail = $parsedMail;
+        $this->arfMail = $arfMail;
     }
 
     /**
@@ -71,7 +76,7 @@ class Parser
             'errorStatus'   => true,
             'errorMessage'  => $message,
             'warningCount'  => $this->warningCount,
-            'data'          => '',
+            'data'          => false,
         ];
     }
 
@@ -151,6 +156,25 @@ class Parser
     }
 
     /**
+     * Check if a valid arfMail was passed along which is required when called.
+     * @param  String   $configBase Configuration Base current parser
+     * @param  String   $feedName   Current feed name
+     * @return Boolean              Returns true or false
+     */
+    protected function hasArfMail()
+    {
+        if ($this->arfMail === false) {
+            $this->warningCount++;
+            Log::warning(
+                "The feed referred as '{$this->feedName}' has an ARF requirement that was not met"
+            );
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * Check and see if a feed is enabled.
      * @param  String   $configBase Configuration Base current parser
      * @param  String   $feedName   Current feed name
@@ -182,7 +206,10 @@ class Parser
             if (count($columns) > 0) {
                 foreach ($columns as $column) {
                     if (!isset($report[$column])) {
-                        $this->requiredField = $column;
+                        Log::warning(
+                            config("{$this->configBase}.parser.name") . " feed '{$this->feedName}' " .
+                            "says $column is required but is missing, therefore skipping processing of this e-event"
+                        );
                         $this->warningCount++;
                         return false;
                     }
