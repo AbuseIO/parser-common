@@ -27,12 +27,6 @@ class Parser
     public $tempPath;
 
     /**
-     * Contains the name of the missing field that is required
-     * @var String
-     */
-    public $requiredField;
-
-    /**
      * Contains the name of the currently used feed within the parser
      * @var String
      */
@@ -89,7 +83,7 @@ class Parser
     {
         $this->cleanup();
 
-        if (empty($data)) {
+        if (empty($this->events)) {
             Log::warning(
                 'The parser ' . config("{$this->configBase}.parser.name") . ' did not return any events which ' .
                 'should be investigated for parser and/or configuration errors'
