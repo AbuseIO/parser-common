@@ -44,7 +44,16 @@ class Parser
      */
     public $warningCount = 0;
 
+    /**
+     * Contains the Email
+     * @var String
+     */
     public $parsedEmail;
+
+    /**
+     * Contains the ARF mail
+     * @var String
+     */
     public $arfMail;
 
     /**
@@ -100,7 +109,7 @@ class Parser
 
     /**
      * Cleanup anything a parser might have left (basically, remove the working dir)
-     * @return Boolean              Returns true or false
+     * @return void
      */
     protected function cleanup()
     {
@@ -114,7 +123,7 @@ class Parser
 
     /**
      * Setup a working directory for the parser
-     * @return Boolean              Returns true or call $this->failed()
+     * @return Boolean Returns true or call $this->failed()
      */
     protected function createWorkingDir()
     {
@@ -125,14 +134,13 @@ class Parser
         if (!$this->fs->makeDirectory($this->tempPath)) {
             return $this->failed("Unable to create directory {$this->tempPath}");
         }
+
         return true;
     }
 
     /**
      * Check if the feed specified is known in the parser config.
-     * @param  String   $configBase Configuration Base current parser
-     * @param  String   $feedName   Current feed name
-     * @return Boolean              Returns true or false
+     * @return Boolean Returns true or false
      */
     protected function isKnownFeed()
     {
@@ -151,9 +159,7 @@ class Parser
 
     /**
      * Check if a valid arfMail was passed along which is required when called.
-     * @param  String   $configBase Configuration Base current parser
-     * @param  String   $feedName   Current feed name
-     * @return Boolean              Returns true or false
+     * @return Boolean Returns true or false
      */
     protected function hasArfMail()
     {
@@ -170,9 +176,7 @@ class Parser
 
     /**
      * Check and see if a feed is enabled.
-     * @param  String   $configBase Configuration Base current parser
-     * @param  String   $feedName   Current feed name
-     * @return Boolean              Returns true or false
+     * @return Boolean Returns true or false
      */
     protected function isEnabledFeed()
     {
@@ -188,10 +192,8 @@ class Parser
 
     /**
      * Check if all required fields are in the report.
-     * @param  String   $configBase Configuration Base current parser
-     * @param  String   $feedName   Current feed name
-     * @param  Array    $report     Report data
-     * @return Boolean              Returns true or false
+     * @param  Array   $report Report data
+     * @return Boolean         Returns true or false
      */
     protected function hasRequiredFields($report)
     {
@@ -216,9 +218,9 @@ class Parser
 
     /**
      * Filter the unwanted and empty fields from the report.
-     * @param   Array   $report      The report that needs filtering base on config elements
-     * @param   Boolean $removeEmpty Option to remove empty fields from report, default is true
-     * @return Array
+     * @param  Array   $report      The report that needs filtering base on config elements
+     * @param  Boolean $removeEmpty Option to remove empty fields from report, default is true
+     * @return Array   $report      The filtered version of the report
      */
     protected function applyFilters($report, $removeEmpty = true)
     {
