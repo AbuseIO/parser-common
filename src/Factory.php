@@ -21,13 +21,18 @@ class Factory
      */
     public static function getParsers()
     {
+        $parsers = [];
         $parserClassList = ClassMapGenerator::createMap(base_path().'/vendor/abuseio');
-        $parserClassListFiltered = array_where(array_keys($parserClassList), function ($key, $value) {
-            // Get all parsers, ignore all other packages.
-            if (strpos($value, 'AbuseIO\Parsers\\') !== false) {
-                return $value;
+        $parserClassListFiltered = array_where(
+            array_keys($parserClassList),
+            function ($key, $value) {
+                // Get all parsers, ignore all other packages.
+                if (strpos($value, 'AbuseIO\Parsers\\') !== false) {
+                    return $value;
+                }
             }
-        });
+        );
+
         $parserList = array_map('class_basename', $parserClassListFiltered);
         foreach ($parserList as $parser) {
             if (!in_array($parser, ['Factory', 'Parser'])) {
@@ -71,6 +76,7 @@ class Factory
                 }
             } else {
                 Log::info(
+                    '(JOB ' . getmypid() . ') \AbuseIO\Parsers\Factory: ' .
                     "The parser {$parserName} has been disabled and will not be used for this message."
                 );
             }

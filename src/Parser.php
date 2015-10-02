@@ -3,6 +3,7 @@
 namespace AbuseIO\Parsers;
 
 use Illuminate\Filesystem\Filesystem;
+use ReflectionClass;
 use Uuid;
 use Log;
 
@@ -30,7 +31,7 @@ class Parser
      * Contains the name of the currently used feed within the parser
      * @var String
      */
-    public $feedName;
+    public $feedName = false;
 
     /**
      * Contains an array of found events that need to be handled
@@ -59,11 +60,35 @@ class Parser
     /**
      * Create a new Parser instance
      */
-    public function __construct($parsedMail, $arfMail)
+    public function __construct($parsedMail, $arfMail, $parser)
     {
-        //
         $this->parsedMail = $parsedMail;
         $this->arfMail = $arfMail;
+
+        $this->startup($parser);
+    }
+
+    /**
+     * Generalize the local config based on the parser class object.
+     * @return void
+     */
+    protected function startup($parser)
+    {
+        $reflect = new ReflectionClass($parser);
+
+        $this->configBase = 'parsers.' . $reflect->getShortName();
+
+        if (empty(config("{$this->configBase}.parser.name"))) {
+            $this->failed("Required parser.name is missing in parser configuration");
+        }
+
+        Log::info(
+            '(JOB ' . getmypid() . ') ' . get_class($this) . ': ' .
+            'Received message from: ' . $this->parsedMail->getHeader('from') . " with subject: '" .
+            $this->parsedMail->getHeader('subject') . "' arrived at parser: " .
+            config("{$this->configBase}.parser.name")
+        );
+
     }
 
     /**
@@ -93,6 +118,7 @@ class Parser
 
         if (empty($this->events)) {
             Log::warning(
+                '(JOB ' . getmypid() . ') ' . get_class($this) . ': ' .
                 'The parser ' . config("{$this->configBase}.parser.name") . ' did not return any events which ' .
                 'should be investigated for parser and/or configuration errors'
             );
@@ -143,17 +169,22 @@ class Parser
      */
     protected function isKnownFeed()
     {
+        if ($this->feedName === false) {
+            return $this->failed("Parser did not set the required feedName value");
+        }
+
         if (empty(config("{$this->configBase}.feeds.{$this->feedName}"))) {
             $this->warningCount++;
             Log::warning(
+                '(JOB ' . getmypid() . ') ' . get_class($this) . ': ' .
                 "The feed referred as '{$this->feedName}' is not configured in the parser " .
                 config("{$this->configBase}.parser.name") .
                 ' therefore skipping processing of this e-mail'
             );
             return false;
-        } else {
-            return true;
         }
+
+        return true;
     }
 
     /**
@@ -165,6 +196,7 @@ class Parser
         if ($this->arfMail === false) {
             $this->warningCount++;
             Log::warning(
+                '(JOB ' . getmypid() . ') ' . get_class($this) . ': ' .
                 "The feed referred as '{$this->feedName}' has an ARF requirement that was not met"
             );
             return false;
@@ -181,6 +213,7 @@ class Parser
     {
         if (config("{$this->configBase}.feeds.{$this->feedName}.enabled") !== true) {
             Log::warning(
+                '(JOB ' . getmypid() . ') ' . get_class($this) . ': ' .
                 "The feed '{$this->feedName}' is disabled in the configuration of parser " .
                 config("{$this->configBase}.parser.name") .
                 ' therefore skipping processing of this e-mail'
@@ -202,6 +235,7 @@ class Parser
                 foreach ($columns as $column) {
                     if (!isset($report[$column])) {
                         Log::warning(
+                            '(JOB ' . getmypid() . ') ' . get_class($this) . ': ' .
                             config("{$this->configBase}.parser.name") . " feed '{$this->feedName}' " .
                             "says $column is required but is missing, therefore skipping processing of this e-event"
                         );
