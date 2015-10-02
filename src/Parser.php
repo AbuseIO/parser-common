@@ -85,7 +85,6 @@ class Parser
 
     /**
      * Return success
-     * @param  String $message
      * @return Array
      */
     protected function success()
