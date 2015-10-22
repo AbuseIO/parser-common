@@ -45,7 +45,7 @@ class Factory
     /**
      * Create and return a Parser class and it's configuration
      * @param  String $parsedMail
-     * @param  String $arfMail
+     * @param  Array $arfMail
      * @return Class
      */
     public static function create($parsedMail, $arfMail)
@@ -72,6 +72,14 @@ class Factory
                 foreach (config("parsers.{$parserName}.parser.body_map") as $regex) {
                     if (preg_match($regex, $parsedMail->getMessageBody())) {
                         return new $parserClass($parsedMail, $arfMail);
+                    }
+
+                    if ($arfMail !== false) {
+                        foreach ($arfMail as $mailPart) {
+                            if (preg_match($regex, $mailPart)) {
+                                return new $parserClass($parsedMail, $arfMail);
+                            }
+                        }
                     }
                 }
             } else {
