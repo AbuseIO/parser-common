@@ -17,7 +17,7 @@ class Factory
 
     /**
      * Get a list of installed AbuseIO parsers and return as an array
-     * @return Array
+     * @return array
      */
     public static function getParsers()
     {
@@ -44,9 +44,9 @@ class Factory
 
     /**
      * Create and return a Parser class and it's configuration
-     * @param  String $parsedMail
-     * @param  Array $arfMail
-     * @return Class
+     * @param  string $parsedMail
+     * @param  array $arfMail
+     * @return class
      */
     public static function create($parsedMail, $arfMail)
     {

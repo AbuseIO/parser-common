@@ -11,49 +11,49 @@ class Parser
 {
     /**
      * Configuration Basename (parser name)
-     * @var String
+     * @var string
      */
     public $configBase;
 
     /**
      * Filesystem object
-     * @var Object
+     * @var object
      */
     public $fs;
 
     /**
      * Temporary working dir
-     * @var String
+     * @var string
      */
     public $tempPath;
 
     /**
      * Contains the name of the currently used feed within the parser
-     * @var String
+     * @var string
      */
     public $feedName = false;
 
     /**
      * Contains an array of found events that need to be handled
-     * @var Array
+     * @var array
      */
     public $events = [ ];
 
     /**
      * Warning counter
-     * @var Integer
+     * @var integer
      */
     public $warningCount = 0;
 
     /**
      * Contains the Email
-     * @var String
+     * @var string
      */
     public $parsedEmail;
 
     /**
      * Contains the ARF mail
-     * @var String
+     * @var string
      */
     public $arfMail;
 
@@ -93,8 +93,8 @@ class Parser
 
     /**
      * Return failed
-     * @param  String $message
-     * @return Array
+     * @param  string $message
+     * @return array
      */
     protected function failed($message)
     {
@@ -110,7 +110,7 @@ class Parser
 
     /**
      * Return success
-     * @return Array
+     * @return array
      */
     protected function success()
     {
@@ -148,7 +148,7 @@ class Parser
 
     /**
      * Setup a working directory for the parser
-     * @return Boolean Returns true or call $this->failed()
+     * @return boolean Returns true or call $this->failed()
      */
     protected function createWorkingDir()
     {
@@ -165,7 +165,7 @@ class Parser
 
     /**
      * Check if the feed specified is known in the parser config.
-     * @return Boolean Returns true or false
+     * @return boolean Returns true or false
      */
     protected function isKnownFeed()
     {
@@ -189,7 +189,7 @@ class Parser
 
     /**
      * Check if a valid arfMail was passed along which is required when called.
-     * @return Boolean Returns true or false
+     * @return boolean Returns true or false
      */
     protected function hasArfMail()
     {
@@ -207,7 +207,7 @@ class Parser
 
     /**
      * Check and see if a feed is enabled.
-     * @return Boolean Returns true or false
+     * @return boolean Returns true or false
      */
     protected function isEnabledFeed()
     {
@@ -224,8 +224,8 @@ class Parser
 
     /**
      * Check if all required fields are in the report.
-     * @param  Array   $report Report data
-     * @return Boolean         Returns true or false
+     * @param  array   $report Report data
+     * @return boolean         Returns true or false
      */
     protected function hasRequiredFields($report)
     {
@@ -251,9 +251,9 @@ class Parser
 
     /**
      * Filter the unwanted and empty fields from the report.
-     * @param  Array   $report      The report that needs filtering base on config elements
-     * @param  Boolean $removeEmpty Option to remove empty fields from report, default is true
-     * @return Array   $report      The filtered version of the report
+     * @param  array   $report      The report that needs filtering base on config elements
+     * @param  boolean $removeEmpty Option to remove empty fields from report, default is true
+     * @return array   $report      The filtered version of the report
      */
     protected function applyFilters($report, $removeEmpty = true)
     {
