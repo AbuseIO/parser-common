@@ -7,6 +7,10 @@ use ReflectionClass;
 use Uuid;
 use Log;
 
+/**
+ * Class Parser
+ * @package AbuseIO\Parsers
+ */
 class Parser
 {
     /**
@@ -47,18 +51,22 @@ class Parser
 
     /**
      * Contains the Email
-     * @var string
+     * @var \PhpMimeMailParser\Parser
      */
     public $parsedEmail;
 
     /**
      * Contains the ARF mail
-     * @var string
+     * @var array
      */
     public $arfMail;
 
     /**
      * Create a new Parser instance
+     *
+     * @param \PhpMimeMailParser\Parser $parsedMail
+     * @param array $arfMail
+     * @param object $parser
      */
     public function __construct($parsedMail, $arfMail, $parser)
     {
@@ -70,6 +78,8 @@ class Parser
 
     /**
      * Generalize the local config based on the parser class object.
+     *
+     * @param object $parser
      * @return void
      */
     protected function startup($parser)

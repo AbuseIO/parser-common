@@ -5,6 +5,10 @@ namespace AbuseIO\Parsers;
 use Symfony\Component\ClassLoader\ClassMapGenerator;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Class Factory
+ * @package AbuseIO\Parsers
+ */
 class Factory
 {
     /**
@@ -23,6 +27,7 @@ class Factory
     {
         $parsers = [];
         $parserClassList = ClassMapGenerator::createMap(base_path().'/vendor/abuseio');
+        /** @noinspection PhpUnusedParameterInspection */
         $parserClassListFiltered = array_where(
             array_keys($parserClassList),
             function ($key, $value) {
@@ -30,6 +35,7 @@ class Factory
                 if (strpos($value, 'AbuseIO\Parsers\\') !== false) {
                     return $value;
                 }
+                return false;
             }
         );
 
@@ -44,9 +50,9 @@ class Factory
 
     /**
      * Create and return a Parser class and it's configuration
-     * @param  string $parsedMail
+     * @param  \PhpMimeMailParser\Parser $parsedMail
      * @param  array $arfMail
-     * @return class
+     * @return object parser
      */
     public static function create($parsedMail, $arfMail)
     {
