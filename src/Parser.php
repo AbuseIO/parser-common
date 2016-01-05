@@ -110,6 +110,12 @@ class Parser
     {
         $this->cleanup();
 
+        Log::warning(
+            '(JOB ' . getmypid() . ') ' . get_class($this) . ': ' .
+            'Parser run failed for module ' . config("{$this->configBase}.parser.name")
+            . ' has ended with errors ' . $message
+        );
+
         return [
             'errorStatus'   => true,
             'errorMessage'  => $message,
@@ -133,6 +139,11 @@ class Parser
                 'should be investigated for parser and/or configuration errors'
             );
         }
+
+        Log::info(
+            '(JOB ' . getmypid() . ') ' . get_class($this) . ': ' .
+            'Parser run completed for module : ' . config("{$this->configBase}.parser.name")
+        );
 
         return [
             'errorStatus'   => false,
