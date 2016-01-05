@@ -90,7 +90,7 @@ class Factory
                 }
             } else {
                 Log::info(
-                    '(JOB ' . getmypid() . ') \AbuseIO\Parsers\Factory: ' .
+                    'AbuseIO\Parsers\Factory: ' .
                     "The parser {$parserName} has been disabled and will not be used for this message."
                 );
             }
