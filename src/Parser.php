@@ -38,10 +38,10 @@ class Parser
     public $feedName = false;
 
     /**
-     * Contains an array of found events that need to be handled
+     * Contains an array of found incidents that need to be handled
      * @var array
      */
-    public $events = [ ];
+    public $incidents = [ ];
 
     /**
      * Warning counter
@@ -132,10 +132,10 @@ class Parser
     {
         $this->cleanup();
 
-        if (empty($this->events)) {
+        if (empty($this->incidents)) {
             Log::warning(
                 get_class($this) . ': ' .
-                'The parser ' . config("{$this->configBase}.parser.name") . ' did not return any events which ' .
+                'The parser ' . config("{$this->configBase}.parser.name") . ' did not return any incidents which ' .
                 'should be investigated for parser and/or configuration errors'
             );
         }
@@ -149,7 +149,7 @@ class Parser
             'errorStatus'   => false,
             'errorMessage'  => 'Data sucessfully parsed',
             'warningCount'  => $this->warningCount,
-            'data'          => $this->events,
+            'data'          => $this->incidents,
         ];
     }
 
@@ -258,7 +258,7 @@ class Parser
                         Log::warning(
                             get_class($this) . ': ' .
                             config("{$this->configBase}.parser.name") . " feed '{$this->feedName}' " .
-                            "says $column is required but is missing, therefore skipping processing of this e-event"
+                            "says $column is required but is missing, therefore skipping processing of this incident"
                         );
                         $this->warningCount++;
                         return false;
