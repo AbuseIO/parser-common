@@ -132,7 +132,12 @@ class Parser
     {
         $this->cleanup();
 
+        /*
+         * Empty mail parsing results is useally a problem. So if the resultset is empty we set a single warning
+         * to trigger an alert if the warning is set to error in the config.
+         */
         if (empty($this->incidents)) {
+            $this->warningCount++;
             Log::warning(
                 get_class($this) . ': ' .
                 'The parser ' . config("{$this->configBase}.parser.name") . ' did not return any incidents which ' .
