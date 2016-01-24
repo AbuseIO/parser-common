@@ -67,27 +67,61 @@ class Factory
 
             // Parser is enabled, see if we can match it's sender_map or body_map
             if (config("parsers.{$parserName}.parser.enabled") === true) {
+
+                // Check validity of the 'report_file' setting before we continue
+                // If no report_file is used, continue w/o validation
+                $report_file = config("parsers.{$parserName}.parser.report_file");
+                if ($report_file == null ||
+                    (is_string($report_file) && isValidRegex($report_file))
+                ) {
+                    $isValidReport = true;
+                } else {
+                    $isValidReport = false;
+
+                    Log::warning(
+                        'AbuseIO\Parsers\Factory: ' .
+                        "The parser {$parserName} has an invalid value for 'report_file' (not a regex)."
+                    );
+                    break;
+                }
+
                 // Check the sender address
-                foreach (config("parsers.{$parserName}.parser.sender_map") as $regex) {
-                    if (preg_match($regex, $parsedMail->getHeader('from'))) {
-                        return new $parserClass($parsedMail, $arfMail);
+                foreach (config("parsers.{$parserName}.parser.sender_map") as $senderMap) {
+                    if (isValidRegex($senderMap)) {
+                        if (preg_match($senderMap, $parsedMail->getHeader('from')) && $isValidReport) {
+                            return new $parserClass($parsedMail, $arfMail);
+                        }
+                    } else {
+                        Log::warning(
+                            'AbuseIO\Parsers\Factory: ' .
+                            "The parser {$parserName} has an invalid value for 'sender_map' (not a regex)."
+                        );
                     }
                 }
 
                 // If no valid sender is found, check the body
-                foreach (config("parsers.{$parserName}.parser.body_map") as $regex) {
-                    if (preg_match($regex, $parsedMail->getMessageBody())) {
-                        return new $parserClass($parsedMail, $arfMail);
-                    }
+                foreach (config("parsers.{$parserName}.parser.body_map") as $bodyMap) {
+                    if (isValidRegex($bodyMap)) {
+                        if (preg_match($bodyMap, $parsedMail->getMessageBody()) && $isValidReport) {
+                            return new $parserClass($parsedMail, $arfMail);
+                        }
 
-                    if ($arfMail !== false) {
-                        foreach ($arfMail as $mailPart) {
-                            if (preg_match($regex, $mailPart)) {
-                                return new $parserClass($parsedMail, $arfMail);
+                        if ($arfMail !== false) {
+                            foreach ($arfMail as $mailPart) {
+                                if (preg_match($bodyMap, $mailPart)) {
+                                    return new $parserClass($parsedMail, $arfMail);
+                                }
                             }
                         }
+                    } else {
+                        Log::warning(
+                            'AbuseIO\Parsers\Factory: ' .
+                            "The parser {$parserName} has an invalid value for 'body_map' (not a regex)."
+                        );
                     }
                 }
+
+
             } else {
                 Log::info(
                     'AbuseIO\Parsers\Factory: ' .
