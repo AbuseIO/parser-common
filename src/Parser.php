@@ -297,7 +297,7 @@ class Parser
         // No sense in adding empty fields, so we remove them
         if ($removeEmpty) {
             foreach ($report as $field => $value) {
-                if ($value == "") {
+                if ($value == "" && !is_bool($value)) {
                     unset($report[$field]);
                 }
             }
