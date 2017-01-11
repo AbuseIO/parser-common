@@ -244,6 +244,7 @@ class Parser
                 config("{$this->configBase}.parser.name") .
                 ' therefore skipping processing of this e-mail'
             );
+            return false;
         }
         return true;
     }
