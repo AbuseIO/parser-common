@@ -102,7 +102,8 @@ class Factory
                 // If no valid sender is found, check the body
                 foreach (config("parsers.{$parserName}.parser.body_map") as $bodyMap) {
                     if (isValidRegex($bodyMap)) {
-                        if (preg_match($bodyMap, $parsedMail->getMessageBody()) && $isValidReport) {
+                        $messageBody = $parsedMail->getMessageBody()?  $parsedMail->getMessageBody('text') :  $parsedMail->getMessageBody('html') ;
+                        if (preg_match($bodyMap, $messageBody) && $isValidReport) {
                             return new $parserClass($parsedMail, $arfMail);
                         }
 
