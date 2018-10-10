@@ -2,7 +2,7 @@
 
 namespace AbuseIO\Parsers;
 
-use Symfony\Component\ClassLoader\ClassMapGenerator;
+use Composer\Autoload\ClassMapGenerator;
 use Illuminate\Support\Facades\Log;
 
 /**
