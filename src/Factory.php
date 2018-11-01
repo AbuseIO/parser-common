@@ -30,7 +30,7 @@ class Factory
         /** @noinspection PhpUnusedParameterInspection */
         $parserClassListFiltered = array_where(
             array_keys($parserClassList),
-            function ($key, $value) {
+            function ($value, $key) {
                 // Get all parsers, ignore all other packages.
                 if (strpos($value, 'AbuseIO\Parsers\\') !== false) {
                     return $value;
