@@ -1,7 +1,7 @@
 {
     "name": "abuseio/parser-common",
     "description": "Parser common helper package",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "keywords": ["laravel", "abuseio", "parser"],
     "homepage": "http://abuse.io",
     "type": "library",
