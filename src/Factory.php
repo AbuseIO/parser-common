@@ -50,6 +50,8 @@ class Factory
      */
     public static function create($parsedMail, $arfMail)
     {
+        // sanitize $arfMail (strict type)
+        $arfMail = is_array($arfMail) ? $arfMail : [];
         /**
          * Loop through the parser list and try to find a match by
          * validating the send or the body according to the parsers'
@@ -65,7 +67,8 @@ class Factory
                     'AbuseIO\Parsers\Factory: ' .
                     "The parser {$parserName} has been disabled and will not be used for this message."
                 );
-                return false;
+                // continue with next parser
+                continue;
             }
             // Parser is enabled, see if we can match it's sender_map or body_map
 
@@ -78,8 +81,8 @@ class Factory
                     'AbuseIO\Parsers\Factory: ' .
                     "The parser {$parserName} has an invalid value for 'report_file' (not a regex)."
                 );
-                // continue with next parser
-                break;
+                // do not continue with next parser
+                return false;
             }
             // report_file is Valid Report
 
@@ -91,8 +94,8 @@ class Factory
                         'AbuseIO\Parsers\Factory: ' .
                         "The parser {$parserName} has an invalid value for 'sender_map' (not a regex)."
                     );
-                    // continue with next sendermap
-                    break;
+                    // continue with next senderMap
+                    continue;
                 }
                 $senderMapMatched = preg_match($senderMap, $parsedMail->getHeader('from'));
                 if ($senderMapMatched) {
@@ -108,15 +111,12 @@ class Factory
                         'AbuseIO\Parsers\Factory: ' .
                         "The parser {$parserName} has an invalid value for 'body_map' (not a regex)."
                     );
-                    // continue with next bodymap
-                    break;
+                    // continue with next bodyMap
+                    continue;
                 }
                 $bodyMapMatched = preg_match($bodyMap, $parsedMail->getMessageBody());
                 if ($bodyMapMatched) {
                     return new $parserClass($parsedMail, $arfMail);
-                }
-                if ($arfMail === false) {
-                    break;
                 }
                 foreach ($arfMail as $mailPart) {
                     $bodyMapMatched = preg_match($bodyMap, $mailPart);
