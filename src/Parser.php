@@ -7,7 +7,30 @@ use ReflectionClass;
 use Uuid;
 use Log;
 
-abstract class Parser
+class Parser extends ParserBase
+{
+    /** @override */
+    public function __construct($parsedMail, $arfMail, $parser)
+    {
+        parent::__construct($parsedMail, $arfMail);
+        $this->startup($parser);
+    }
+
+    /** @override */
+    protected function startup($parser)
+    {
+        if (!function_exists('class_basename')) {
+            function class_basename($fullyQualifiedClassName) {
+                return substr(strrchr($fullyQualifiedClassName, '\\'), 1);
+            }
+        }
+        $this->configBase = 'parsers.' . class_basename($parser);
+        parent::startup();
+    }
+
+}
+
+abstract class ParserBase
 {
     /**
      * @var string Configuration Basename (parser name)
@@ -68,7 +91,9 @@ abstract class Parser
      */
     protected function startup()
     {
-        $this->configBase = 'parsers.' . $this->getShortName();
+        if (!isset($this->configBase)) {
+            $this->configBase = 'parsers.' . $this->getShortName();
+        }
 
         if (empty(config("{$this->configBase}.parser.name"))) {
             $this->failed("Required parser.name is missing in parser configuration");
@@ -263,10 +288,8 @@ abstract class Parser
      */
     protected function applyFilters($report, $removeEmpty = true)
     {
-        if ((!empty(config("{$this->configBase}.feeds.{$this->feedName}.filters"))) &&
-            (is_array(config("{$this->configBase}.feeds.{$this->feedName}.filters")))
-        ) {
-            $filter_columns = config("{$this->configBase}.feeds.{$this->feedName}.filters");
+        $filter_columns = config("{$this->configBase}.feeds.{$this->feedName}.filters");
+        if ((!empty($filter_columns)) && (is_array($filter_columns))) {
             $filter_columns = array_filter($filter_columns); // remove empty values
             $filter_columns = array_flip($filter_columns); // make values keys
             $report = array_diff_key($report, $filter_columns); // remove keys from $report
