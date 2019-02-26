@@ -67,9 +67,9 @@ abstract class Parser
      */
     protected function startup()
     {
-        if (!isset($this->configBase)) {
-            $this->configBase = 'parsers.' . $this->getShortName();
-        }
+        // retrieve name of current class, whether it's namespaced or not.
+        $className = substr(strrchr('\\' . get_class(), '\\'), 1);
+        $this->configBase = 'parsers.' . $className;
 
         if (empty(config("{$this->configBase}.parser.name"))) {
             $this->failed("Required parser.name is missing in parser configuration");
