@@ -3,90 +3,73 @@
 namespace AbuseIO\Parsers;
 
 use Illuminate\Filesystem\Filesystem;
-use ReflectionClass;
 use Uuid;
 use Log;
 
-/**
- * Class Parser
- * @package AbuseIO\Parsers
- */
-class Parser
+abstract class Parser
 {
     /**
-     * Configuration Basename (parser name)
-     * @var string
+     * @var string Configuration Basename (parser name)
      */
     public $configBase;
 
     /**
-     * Filesystem object
-     * @var object
+     * @var object Filesystem object used to write temporary files in self::$tempPath
      */
     public $fs;
 
     /**
-     * Temporary working dir
-     * @var string
+     * @var string Temporary working dir
      */
     public $tempPath;
 
     /**
-     * Contains the name of the currently used feed within the parser
-     * @var string
+     * @var string Name of the feed that is currently used
      */
     public $feedName = false;
 
     /**
-     * Contains an array of found incidents that need to be handled
-     * @var array
+     * @var array Found incidents that need to be handled
      */
     public $incidents = [ ];
 
     /**
-     * Warning counter
-     * @var integer
+     * @var integer Count of the total amount of warnings
      */
     public $warningCount = 0;
 
     /**
-     * Contains the Email
-     * @var \PhpMimeMailParser\Parser
+     * @var \PhpMimeMailParser\Parser Contains the Email currently being parsed
      */
     public $parsedEmail;
 
     /**
-     * Contains the ARF mail
-     * @var array
+     * @var array Contains the ARF mail addresses
      */
     public $arfMail;
 
     /**
-     * Create a new Parser instance
-     *
      * @param \PhpMimeMailParser\Parser $parsedMail
      * @param array $arfMail
-     * @param object $parser
      */
-    public function __construct($parsedMail, $arfMail, $parser)
+    public function __construct($parsedMail, $arfMail)
     {
         $this->parsedMail = $parsedMail;
         $this->arfMail = $arfMail;
 
-        $this->startup($parser);
+        $this->startup();
     }
 
     /**
      * Generalize the local config based on the parser class object.
      *
-     * @param object $parser
      * @return void
      */
-    protected function startup($parser)
+    protected function startup()
     {
-        $reflect = new ReflectionClass($parser);
-
-        $this->configBase = 'parsers.' . $reflect->getShortName();
+        // retrieve name of current class, whether it's namespaced or not.
+        $className = substr(strrchr('\\' . get_class(), '\\'), 1);
+        $this->configBase = 'parsers.' . $className;
 
         if (empty(config("{$this->configBase}.parser.name"))) {
             $this->failed("Required parser.name is missing in parser configuration");
@@ -133,7 +116,7 @@ class Parser
         $this->cleanup();
 
         /*
-         * Empty mail parsing results is useally a problem. So if the resultset is empty we set a single warning
+         * Empty mail parsing results is usually a problem. So if the resultset is empty we set a single warning
          * to trigger an alert if the warning is set to error in the config.
          */
         if (empty($this->incidents)) {
@@ -199,7 +182,8 @@ class Parser
             return $this->failed("Parser did not set the required feedName value");
         }
 
-        if (empty(config("{$this->configBase}.feeds.{$this->feedName}"))) {
+        $currentFeed = config("{$this->configBase}.feeds.{$this->feedName}");
+        if (empty($currentFeed)) {
             $this->warningCount++;
             Log::warning(
                 get_class($this) . ': ' .
@@ -215,7 +199,7 @@ class Parser
 
     /**
      * Check if a valid arfMail was passed along which is required when called.
-     * @return boolean Returns true or false
+     * @return boolean $this->arfMail !== false
      */
     protected function hasArfMail()
     {
@@ -226,18 +210,17 @@ class Parser
                 "The feed referred as '{$this->feedName}' has an ARF requirement that was not met"
             );
             return false;
-        } else {
-            return true;
         }
+        return true;
     }
 
     /**
-     * Check and see if a feed is enabled.
-     * @return boolean Returns true or false
+     * @return boolean true if the current feed is enabled in the config, false otherwise
      */
     protected function isEnabledFeed()
     {
-        if (config("{$this->configBase}.feeds.{$this->feedName}.enabled") !== true) {
+        $currentFeedEnabled = config("{$this->configBase}.feeds.{$this->feedName}.enabled");
+        if ($currentFeedEnabled !== true) {
             Log::warning(
                 get_class($this) . ': ' .
                 "The feed '{$this->feedName}' is disabled in the configuration of parser " .
@@ -250,27 +233,24 @@ class Parser
     }
 
     /**
-     * Check if all required fields are in the report.
      * @param  array   $report Report data
-     * @return boolean         Returns true or false
+     * @return boolean         Returns true if all required fields are in the report, false otherwise
      */
     protected function hasRequiredFields($report)
     {
-        if (is_array(config("{$this->configBase}.feeds.{$this->feedName}.fields"))) {
-            $columns = array_filter(config("{$this->configBase}.feeds.{$this->feedName}.fields"));
-            if (count($columns) > 0) {
-                foreach ($columns as $column) {
-                    if (!isset($report[$column])) {
-                        Log::warning(
-                            get_class($this) . ': ' .
-                            config("{$this->configBase}.parser.name") . " feed '{$this->feedName}' " .
-                            "says $column is required but is missing, therefore skipping processing of this incident"
-                        );
-                        $this->warningCount++;
-                        return false;
-                    }
-                }
+        $feedFields = config("{$this->configBase}.feeds.{$this->feedName}.fields");
+        $columns = array_filter($feedFields);
+        foreach ($columns as $column) {
+            if (isset($report[$column])) {
+                continue;
             }
+            Log::warning(
+                get_class($this) . ': ' .
+                config("{$this->configBase}.parser.name") . " feed '{$this->feedName}' " .
+                "says $column is required but is missing, therefore skipping processing of this incident"
+            );
+            $this->warningCount++;
+            return false;
         }
 
         return true;
@@ -284,24 +264,24 @@ class Parser
      */
     protected function applyFilters($report, $removeEmpty = true)
     {
-        if ((!empty(config("{$this->configBase}.feeds.{$this->feedName}.filters"))) &&
-            (is_array(config("{$this->configBase}.feeds.{$this->feedName}.filters")))
-        ) {
-            $filter_columns = array_filter(config("{$this->configBase}.feeds.{$this->feedName}.filters"));
-            foreach ($filter_columns as $column) {
-                if (!empty($report[$column])) {
-                    unset($report[$column]);
-                }
-            }
+        $filter_columns = config("{$this->configBase}.feeds.{$this->feedName}.filters");
+        if ((!empty($filter_columns)) && (is_array($filter_columns))) {
+            $filter_columns = array_filter($filter_columns); // remove empty values
+            $filter_columns = array_flip($filter_columns); // make values keys
+            $report = array_diff_key($report, $filter_columns); // remove keys from $report
         }
 
-        // No sense in adding empty fields, so we remove them
         if ($removeEmpty) {
-            foreach ($report as $field => $value) {
-                if ($value == "" && !is_bool($value)) {
-                    unset($report[$field]);
+            // No sense in adding empty fields, so we remove them
+            $report = array_filter($report, function($key, $value){
+                if (is_bool($value)) {
+                    return true;
                 }
-            }
+                if ($value != "") {
+                    return true;
+                }
+                return false;
+            });
         }
 
         return $report;
