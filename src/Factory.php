@@ -4,6 +4,7 @@ namespace AbuseIO\Parsers;
 
 use Composer\Autoload\ClassMapGenerator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Arr;
 
 /**
  * Class Factory
@@ -28,8 +29,8 @@ class Factory
         $parsers = [];
         $parserClassList = ClassMapGenerator::createMap(base_path().'/vendor/abuseio');
         /** @noinspection PhpUnusedParameterInspection */
-        $parserClassListFiltered = array_where(
-            array_keys($parserClassList),
+        $parserClassListFiltered = Arr::where(
+            Arr::keys($parserClassList),
             function ($value, $key) {
                 // Get all parsers, ignore all other packages.
                 if (strpos($value, 'AbuseIO\Parsers\\') !== false) {
@@ -39,7 +40,7 @@ class Factory
             }
         );
 
-        $parserList = array_map('class_basename', $parserClassListFiltered);
+        $parserList = Arr::map('class_basename', $parserClassListFiltered);
         foreach ($parserList as $parser) {
             if (!in_array($parser, ['Factory', 'Parser'])) {
                 $parsers[] = $parser;

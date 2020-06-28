@@ -1,7 +1,7 @@
 {
     "name": "abuseio/parser-common",
     "description": "Parser common helper package",
-    "version": "2.1.2",
+    "version": "3.0.0",
     "keywords": ["laravel", "abuseio", "parser"],
     "homepage": "http://abuse.io",
     "type": "library",
@@ -22,7 +22,7 @@
         "docs": "https://abuse.io/resources/documentation/"
     },
     "require": {
-        "php": ">=5.5.9"
+        "php": ">=7.4.0"
     },
     "autoload": {
         "psr-4": {
