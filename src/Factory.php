@@ -30,7 +30,7 @@ class Factory
         $parserClassList = ClassMapGenerator::createMap(base_path().'/vendor/abuseio');
         /** @noinspection PhpUnusedParameterInspection */
         $parserClassListFiltered = Arr::where(
-            Arr::keys($parserClassList),
+            array_keys($parserClassList),
             function ($value, $key) {
                 // Get all parsers, ignore all other packages.
                 if (strpos($value, 'AbuseIO\Parsers\\') !== false) {
