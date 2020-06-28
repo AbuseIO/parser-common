@@ -40,7 +40,7 @@ class Factory
             }
         );
 
-        $parserList = Arr::map('class_basename', $parserClassListFiltered);
+        $parserList = array_map('class_basename', $parserClassListFiltered);
         foreach ($parserList as $parser) {
             if (!in_array($parser, ['Factory', 'Parser'])) {
                 $parsers[] = $parser;
